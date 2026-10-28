@@ -1,0 +1,30 @@
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Configuración local
+.env
+.env.*
+.vscode/
+
+# Datasets (no subir archivos grandes)
+data/raw/
+data/processed/
+*.csv
+*.parquet
+*.zip
+
+# Resultados temporales
+results/tmp/
+benchmarks/tmp/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
