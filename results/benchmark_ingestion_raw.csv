@@ -1,0 +1,11 @@
+metodo,tiempo_s,throughput,rss_incremento_mib
+original,1.1202,89271,112.43
+original,1.0899,91749,111.71
+original,1.1158,89624,112.12
+original,1.1238,88983,112.33
+original,1.1337,88211,112.41
+streaming,1.0285,97231,16.12
+streaming,1.0108,98927,15.38
+streaming,1.0303,97063,16.12
+streaming,1.064,93982,16.32
+streaming,1.0117,98848,16.39

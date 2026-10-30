@@ -1,0 +1,6 @@
+
+-r requirements.txt
+
+pytest==9.2.0
+ipykernel==7.4.0
+jupyterlab==4.6.4

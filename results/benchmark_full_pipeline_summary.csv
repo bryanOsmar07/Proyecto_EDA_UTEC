@@ -1,0 +1,3 @@
+metodo,tiempo_mediano,throughput_mediano,rss_mediano,tiempo_min,tiempo_max
+original,1.7651,56654.0,155.39,1.7616,1.7754
+streaming,1.6475,60699.0,77.87,1.5705,1.8913
