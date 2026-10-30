@@ -190,3 +190,50 @@ class UserProductInteractionAggregator:
         )
 
         return matrix, user_ids, product_ids
+
+
+class StreamingProductCatalog:
+    """
+    Catálogo incremental por product_id.
+
+    Conserva el evento más reciente de cada producto,
+    utilizando (event_timestamp, event_id).
+    """
+
+    def __init__(self):
+        self.products = {}
+        self.total_events = 0
+
+    def update(self, event):
+        product_id = event["product_id"]
+
+        current = self.products.get(product_id)
+
+        if current is None:
+            self.products[product_id] = event.copy()
+
+        else:
+            new_key = (
+                event["event_timestamp"],
+                event["event_id"]
+            )
+
+            current_key = (
+                current["event_timestamp"],
+                current["event_id"]
+            )
+
+            if new_key > current_key:
+                self.products[product_id] = event.copy()
+
+        self.total_events += 1
+
+    def process(self, events):
+        for event in events:
+            self.update(event)
+
+    def get(self, product_id):
+        return self.products.get(product_id)
+
+    def __len__(self):
+        return len(self.products)

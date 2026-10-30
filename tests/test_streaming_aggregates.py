@@ -10,6 +10,11 @@ from src.streaming_aggregates import (
     UserProductInteractionAggregator
 )
 
+from src.streaming_aggregates import (
+    ProductInteractionAggregator,
+    UserProductInteractionAggregator,
+    StreamingProductCatalog
+)
 
 def make_event(event_id, product_id, event_type):
     return {
@@ -187,6 +192,128 @@ class TestStreamingCSR(unittest.TestCase):
         self.assertEqual(users, [])
         self.assertEqual(products, [])
 
+
+
+class TestStreamingProductCatalog(unittest.TestCase):
+
+    def test_latest_timestamp_wins(self):
+        catalog = StreamingProductCatalog()
+
+        events = [
+            {
+                "product_id": 100,
+                "event_id": 1,
+                "event_timestamp": "2026-10-01T10:00:00Z",
+                "price": 150.0
+            },
+            {
+                "product_id": 100,
+                "event_id": 2,
+                "event_timestamp": "2026-10-01T09:00:00Z",
+                "price": 200.0
+            }
+        ]
+
+        catalog.process(events)
+
+        self.assertEqual(catalog.get(100)["event_id"], 1)
+        self.assertEqual(catalog.get(100)["price"], 150.0)
+
+    def test_event_id_breaks_timestamp_tie(self):
+        catalog = StreamingProductCatalog()
+
+        events = [
+            {
+                "product_id": 100,
+                "event_id": 1,
+                "event_timestamp": "2026-10-01T10:00:00Z",
+                "price": 150.0
+            },
+            {
+                "product_id": 100,
+                "event_id": 3,
+                "event_timestamp": "2026-10-01T10:00:00Z",
+                "price": 175.0
+            }
+        ]
+
+        catalog.process(events)
+
+        self.assertEqual(catalog.get(100)["event_id"], 3)
+
+    def test_multiple_products(self):
+        catalog = StreamingProductCatalog()
+
+        catalog.process([
+            {
+                "product_id": 100,
+                "event_id": 1,
+                "event_timestamp": "2026-10-01T10:00:00Z",
+                "price": 150.0
+            },
+            {
+                "product_id": 200,
+                "event_id": 2,
+                "event_timestamp": "2026-10-01T10:00:00Z",
+                "price": 250.0
+            }
+        ])
+
+        self.assertEqual(len(catalog), 2)
+        self.assertEqual(catalog.total_events, 2)
+
+    def test_missing_product(self):
+        catalog = StreamingProductCatalog()
+        self.assertIsNone(catalog.get(999))
+
+    
+    def test_matches_original_product_store(self):
+        from datetime import datetime, timezone
+        from src.storage import ProductStore
+
+        original = ProductStore()
+        streaming = StreamingProductCatalog()
+
+        timestamp = datetime(
+            2026, 10, 30, tzinfo=timezone.utc
+        )
+
+        events = [
+            {
+                "product_id": 100,
+                "event_id": 1,
+                "event_timestamp": timestamp,
+                "price": 100.0
+            },
+            {
+                "product_id": 200,
+                "event_id": 2,
+                "event_timestamp": timestamp,
+                "price": 200.0
+            },
+            {
+                "product_id": 100,
+                "event_id": 3,
+                "event_timestamp": timestamp,
+                "price": 150.0
+            }
+        ]
+
+        for event in events:
+            original.add_product(
+                event,
+                event["event_timestamp"],
+                event["event_id"]
+            )
+            streaming.update(event)
+
+        self.assertEqual(
+            original.products,
+            streaming.products
+        )
+        self.assertEqual(len(original), len(streaming))
+
+    
 
 
 if __name__ == "__main__":
