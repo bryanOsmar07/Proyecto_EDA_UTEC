@@ -18,6 +18,8 @@ def run_ingestion_pipeline(events, batch_size=1000):
 
     buffer = EventBufferFIFO()
     processed_events = []
+    # Registro exacto de IDs aceptados en lotes anteriores
+    seen_event_ids = set()
 
     metrics = {
         "received": 0,
@@ -27,14 +29,25 @@ def run_ingestion_pipeline(events, batch_size=1000):
         "output": 0
     }
 
+    
     def process_batch(batch):
         result = preprocess_batch(batch)
-
-        processed_events.extend(result["events"])
 
         metrics["valid"] += result["valid"]
         metrics["invalid"] += result["invalid"]
         metrics["duplicates"] += result["duplicates"]
+
+        # Deduplicar también contra lotes anteriores
+        for event in result["events"]:
+            event_id = event["event_id"]
+
+            if event_id in seen_event_ids:
+                metrics["duplicates"] += 1
+                continue
+
+            seen_event_ids.add(event_id)
+            processed_events.append(event)
+
 
     # Ingesta de eventos
     for event in events:
