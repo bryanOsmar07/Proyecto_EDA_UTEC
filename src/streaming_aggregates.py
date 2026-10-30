@@ -1,5 +1,7 @@
 
 from collections import defaultdict
+from statistics import median
+import math
 
 
 class ProductInteractionAggregator:
@@ -237,3 +239,63 @@ class StreamingProductCatalog:
 
     def __len__(self):
         return len(self.products)
+
+
+class StreamingProductPriceMedian:
+    """
+    Acumula precios por producto y calcula
+    la mediana exacta al finalizar la ingesta.
+
+    No conserva los eventos completos.
+    """
+
+    def __init__(self):
+        self.prices = defaultdict(list)
+        self.total_prices = 0
+
+    def update(self, event):
+        product_id = event["product_id"]
+        price = event["price"]
+
+        # La mediana de pandas omite valores faltantes.
+        if price is None:
+            return
+
+        price = float(price)
+
+        if math.isnan(price):
+            return
+
+        if not math.isfinite(price):
+            raise ValueError("Precio no finito")
+
+        self.prices[product_id].append(price)
+        self.total_prices += 1
+
+    def process(self, events):
+        for event in events:
+            self.update(event)
+
+    def get_median(self, product_id):
+        values = self.prices.get(product_id)
+
+        if not values:
+            return None
+
+        return median(values)
+
+    def to_dataframe(self):
+        import pandas as pd
+
+        rows = [
+            {
+                "product_id": product_id,
+                "median_price": median(values)
+            }
+            for product_id, values in self.prices.items()
+        ]
+
+        return pd.DataFrame(
+            rows,
+            columns=["product_id", "median_price"]
+        )
