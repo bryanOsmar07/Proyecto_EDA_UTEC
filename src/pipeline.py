@@ -10,24 +10,50 @@ from src.product_features import (
     FEATURE_COLUMNS
 )
 from src.multidimensional_index import ProductKDTree
+from src.hybrid_dedup import HybridDeduplicator
 
 
 
 
-def run_ingestion_pipeline(events, batch_size=1000):
+
+
+def run_ingestion_pipeline(
+    events,
+    batch_size=1000,
+    dedup_method="set",
+    expected_items=100000,
+    false_positive_rate=0.01
+):
     """
-    Integra:
-    Etapa 0: Ingesta FIFO
-    Etapa 1: Preprocesamiento por lotes
+    Etapas 0 y 1:
+    - Ingesta FIFO
+    - Validación y preprocesamiento
+    - Deduplicación dentro y entre lotes
+
+    dedup_method:
+        'set'    -> Hash Set exacto
+        'hybrid' -> Bloom Filter + Hash Set
     """
 
     if batch_size <= 0:
         raise ValueError("batch_size debe ser positivo")
 
+    if dedup_method not in ("set", "hybrid"):
+        raise ValueError("Método de deduplicación inválido")
+
     buffer = EventBufferFIFO()
     processed_events = []
-    # Registro exacto de IDs aceptados en lotes anteriores
+
     seen_event_ids = set()
+
+    deduplicator = (
+        HybridDeduplicator(
+            expected_items=expected_items,
+            false_positive_rate=false_positive_rate
+        )
+        if dedup_method == "hybrid"
+        else None
+    )
 
     metrics = {
         "received": 0,
@@ -37,7 +63,6 @@ def run_ingestion_pipeline(events, batch_size=1000):
         "output": 0
     }
 
-    
     def process_batch(batch):
         result = preprocess_batch(batch)
 
@@ -45,24 +70,28 @@ def run_ingestion_pipeline(events, batch_size=1000):
         metrics["invalid"] += result["invalid"]
         metrics["duplicates"] += result["duplicates"]
 
-        # Deduplicar también contra lotes anteriores
         for event in result["events"]:
             event_id = event["event_id"]
 
-            if event_id in seen_event_ids:
-                metrics["duplicates"] += 1
-                continue
+            if dedup_method == "set":
+                if event_id in seen_event_ids:
+                    metrics["duplicates"] += 1
+                    continue
 
-            seen_event_ids.add(event_id)
+                seen_event_ids.add(event_id)
+
+            else:
+                if not deduplicator.process(event):
+                    metrics["duplicates"] += 1
+                    continue
+
             processed_events.append(event)
 
-
-    # Ingesta de eventos
+    # Etapa 0: ingesta FIFO
     for event in events:
         buffer.enqueue(event)
         metrics["received"] += 1
 
-        # Procesar cuando alcanza batch_size
         if len(buffer) >= batch_size:
             batch = []
 
@@ -71,7 +100,7 @@ def run_ingestion_pipeline(events, batch_size=1000):
 
             process_batch(batch)
 
-    # Procesar los eventos restantes
+    # Procesar último lote incompleto
     if not buffer.is_empty():
         batch = []
 
@@ -81,6 +110,23 @@ def run_ingestion_pipeline(events, batch_size=1000):
         process_batch(batch)
 
     metrics["output"] = len(processed_events)
+    metrics["dedup_method"] = dedup_method
+
+    if deduplicator is not None:
+        hybrid_metrics = deduplicator.metrics()
+
+        metrics["bloom_positives"] = (
+            hybrid_metrics["bloom_positives"]
+        )
+        metrics["bloom_false_positives"] = (
+            hybrid_metrics["bloom_false_positives"]
+        )
+        metrics["exact_checks"] = (
+            hybrid_metrics["exact_checks"]
+        )
+        metrics["bloom_memory_bytes"] = (
+            hybrid_metrics["bloom_memory_bytes"]
+        )
 
     return {
         "events": processed_events,
@@ -88,7 +134,10 @@ def run_ingestion_pipeline(events, batch_size=1000):
     }
 
 
-def run_priority_pipeline(events, batch_size=1000):
+
+def run_priority_pipeline(events, batch_size=1000,dedup_method="set",
+        expected_items=100000,
+        false_positive_rate=0.01):
     """
     Integra las primeras tres etapas:
 
@@ -100,8 +149,12 @@ def run_priority_pipeline(events, batch_size=1000):
     # Ejecutar etapas 0 y 1
     ingestion_result = run_ingestion_pipeline(
         events=events,
-        batch_size=batch_size
+        batch_size=batch_size,
+        dedup_method=dedup_method,
+        expected_items=expected_items,
+        false_positive_rate=false_positive_rate
     )
+
 
     # Obtener eventos validados y deduplicados
     clean_events = ingestion_result["events"]
@@ -129,7 +182,9 @@ def run_priority_pipeline(events, batch_size=1000):
     }
 
 
-def run_storage_pipeline(events, batch_size=1000, cache_capacity=100):
+def run_storage_pipeline(events, batch_size=1000, cache_capacity=100,dedup_method="set",
+        expected_items=100000,
+        false_positive_rate=0.01):
     """
     Integra las etapas 0, 1, 2 y 3.
 
@@ -142,7 +197,10 @@ def run_storage_pipeline(events, batch_size=1000, cache_capacity=100):
     # Ejecutar etapas 0, 1 y 2
     priority_result = run_priority_pipeline(
         events=events,
-        batch_size=batch_size
+        batch_size=batch_size,
+        dedup_method=dedup_method,
+        expected_items=expected_items,
+        false_positive_rate=false_positive_rate
     )
 
     prioritized_events = priority_result["events"]
@@ -210,7 +268,10 @@ def run_indexed_pipeline(
     events,
     batch_size=1000,
     cache_capacity=100,
-    max_keys=32
+    max_keys=32,
+    dedup_method="set",
+    expected_items=100000,
+    false_positive_rate=0.01
 ):
     """
     Integra las etapas 0, 1, 2, 3 y 4.
@@ -223,7 +284,10 @@ def run_indexed_pipeline(
     storage_result = run_storage_pipeline(
         events=events,
         batch_size=batch_size,
-        cache_capacity=cache_capacity
+        cache_capacity=cache_capacity,
+        dedup_method=dedup_method,
+        expected_items=expected_items,
+        false_positive_rate=false_positive_rate
     )
 
     catalog = storage_result["catalog"]
@@ -258,7 +322,10 @@ def run_multidimensional_pipeline(
     batch_size=1000,
     cache_capacity=100,
     max_keys=32,
-    leaf_size=40
+    leaf_size=40,
+    dedup_method="set",
+    expected_items=100000,
+    false_positive_rate=0.01
 ):
     """
     Integra las etapas 0 a 5 del proyecto.
@@ -274,7 +341,10 @@ def run_multidimensional_pipeline(
         events=events,
         batch_size=batch_size,
         cache_capacity=cache_capacity,
-        max_keys=max_keys
+        max_keys=max_keys,
+        dedup_method=dedup_method,
+        expected_items=expected_items,
+        false_positive_rate=false_positive_rate
     )
 
     clean_events = indexed_result["events"]

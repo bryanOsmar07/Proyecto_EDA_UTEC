@@ -85,6 +85,80 @@ class TestPipelineIntegration(unittest.TestCase):
             36
         )
 
+    
+    def test_full_pipeline_hybrid_dedup(self):
+        """Compara el pipeline completo con ambos métodos."""
+
+        # 12 eventos originales + 3 retransmisiones
+        events = self.events + [
+            self.events[0].copy(),
+            self.events[3].copy(),
+            self.events[7].copy()
+        ]
+
+        result_set = run_multidimensional_pipeline(
+            events,
+            batch_size=4,
+            dedup_method="set"
+        )
+
+        result_hybrid = run_multidimensional_pipeline(
+            events,
+            batch_size=4,
+            dedup_method="hybrid",
+            expected_items=100,
+            false_positive_rate=0.01
+        )
+
+        metrics_set = result_set["metrics"]
+        metrics_hybrid = result_hybrid["metrics"]
+
+        # Verificar que las retransmisiones se eliminan
+        self.assertEqual(metrics_set["received"], 15)
+        self.assertEqual(metrics_hybrid["received"], 15)
+
+        self.assertEqual(metrics_set["duplicates"], 3)
+        self.assertEqual(metrics_hybrid["duplicates"], 3)
+
+        self.assertEqual(metrics_set["output"], 12)
+        self.assertEqual(metrics_hybrid["output"], 12)
+
+        # Verificar conservación de eventos
+        ids_set = [
+            e["event_id"] for e in result_set["events"]
+        ]
+        ids_hybrid = [
+            e["event_id"] for e in result_hybrid["events"]
+        ]
+
+        self.assertEqual(ids_set, ids_hybrid)
+
+        # Verificar equivalencia de estructuras
+        self.assertEqual(
+            metrics_set["catalog_products"],
+            metrics_hybrid["catalog_products"]
+        )
+
+        self.assertEqual(
+            metrics_set["csr_nnz"],
+            metrics_hybrid["csr_nnz"]
+        )
+
+        self.assertEqual(
+            metrics_set["kdtree_products"],
+            metrics_hybrid["kdtree_products"]
+        )
+
+        # Comprobar que la opción híbrida fue utilizada
+        self.assertEqual(
+            metrics_hybrid["dedup_method"],
+            "hybrid"
+        )
+
+        self.assertIn("exact_checks", metrics_hybrid)
+        self.assertIn("bloom_memory_bytes", metrics_hybrid)
+
+
 
 if __name__ == "__main__":
     unittest.main()
