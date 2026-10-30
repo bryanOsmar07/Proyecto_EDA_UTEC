@@ -4,6 +4,8 @@ from src.preprocessing import preprocess_batch
 from src.priority_queue import EventPriorityQueue
 from src.storage import ProductStore, LRUCache
 from src.sparse_matrix import UserProductMatrix
+from src.bplus_tree import BPlusTree
+
 
 
 def run_ingestion_pipeline(events, batch_size=1000):
@@ -194,5 +196,52 @@ def run_storage_pipeline(events, batch_size=1000, cache_capacity=100):
         "catalog": catalog,
         "cache": cache,
         "csr": csr_result,
+        "metrics": metrics
+    }
+
+
+def run_indexed_pipeline(
+    events,
+    batch_size=1000,
+    cache_capacity=100,
+    max_keys=32
+):
+    """
+    Integra las etapas 0, 1, 2, 3 y 4.
+
+    Construye una instantánea del índice B+Tree
+    a partir del catálogo actualizado.
+    """
+
+    # Ejecutar etapas 0-3
+    storage_result = run_storage_pipeline(
+        events=events,
+        batch_size=batch_size,
+        cache_capacity=cache_capacity
+    )
+
+    catalog = storage_result["catalog"]
+
+    # Etapa 4: construir índice de precios
+    price_index = BPlusTree(max_keys=max_keys)
+
+    for product in catalog.products.values():
+        price_cents = round(product["price"] * 100)
+
+        price_index.insert(
+            price_cents,
+            product["product_id"]
+        )
+
+    # Registrar métricas
+    metrics = {
+        **storage_result["metrics"],
+        "bptree_indexed_products": len(price_index),
+        "bptree_root_keys": len(price_index.root.keys)
+    }
+
+    return {
+        **storage_result,
+        "price_index": price_index,
         "metrics": metrics
     }
