@@ -5,6 +5,12 @@ from src.priority_queue import EventPriorityQueue
 from src.storage import ProductStore, LRUCache
 from src.sparse_matrix import UserProductMatrix
 from src.bplus_tree import BPlusTree
+from src.product_features import (
+    build_product_features,
+    FEATURE_COLUMNS
+)
+from src.multidimensional_index import ProductKDTree
+
 
 
 
@@ -243,5 +249,60 @@ def run_indexed_pipeline(
     return {
         **storage_result,
         "price_index": price_index,
+        "metrics": metrics
+    }
+
+
+def run_multidimensional_pipeline(
+    events,
+    batch_size=1000,
+    cache_capacity=100,
+    max_keys=32,
+    leaf_size=40
+):
+    """
+    Integra las etapas 0 a 5 del proyecto.
+
+    Etapa 5:
+    - Generación de características por producto
+    - Normalización StandardScaler
+    - Construcción KD-Tree para KNN exacto
+    """
+
+    # Ejecutar etapas 0 a 4
+    indexed_result = run_indexed_pipeline(
+        events=events,
+        batch_size=batch_size,
+        cache_capacity=cache_capacity,
+        max_keys=max_keys
+    )
+
+    clean_events = indexed_result["events"]
+
+    # Construir características a partir de eventos
+    # válidos, deduplicados y priorizados
+    features = build_product_features(clean_events)
+
+    # Construir índice multidimensional
+    product_index = ProductKDTree(
+        leaf_size=leaf_size
+    )
+
+    product_index.fit(
+        product_ids=features["product_id"].to_numpy(),
+        features=features[FEATURE_COLUMNS].to_numpy()
+    )
+
+    # Registrar métricas
+    metrics = {
+        **indexed_result["metrics"],
+        "kdtree_products": len(product_index.product_ids),
+        "kdtree_dimensions": product_index.X_scaled.shape[1]
+    }
+
+    return {
+        **indexed_result,
+        "product_features": features,
+        "product_kdtree": product_index,
         "metrics": metrics
     }
