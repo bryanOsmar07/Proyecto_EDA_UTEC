@@ -1,0 +1,2 @@
+user_id,window,event_id,estimated_frequency,exact_frequency,threshold,alert_type,is_synthetic_alert
+554090147,2019-10-01T03:00:00+00:00,36883,10,10,10,high_purchase_frequency,True

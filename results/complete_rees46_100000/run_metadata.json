@@ -1,0 +1,20 @@
+{
+  "source": "rees46",
+  "requested_events": 100000,
+  "received_events": 100000,
+  "rss_initial_mib": 172.30859375,
+  "rss_final_mib": 268.09375,
+  "rss_peak_mib": 268.65234375,
+  "rss_peak_increment_mib": 96.34375,
+  "rss_sample_interval_s": 0.02,
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "cpu": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+  "ram_gib": 15.668815612792969,
+  "seed": 42,
+  "native_threads": 1,
+  "elapsed_s": 14.597456200048327,
+  "products": 20621,
+  "graph_nodes": 843,
+  "graph_edges": 159
+}

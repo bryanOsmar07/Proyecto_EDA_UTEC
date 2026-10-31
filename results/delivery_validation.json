@@ -1,0 +1,232 @@
+{
+  "checks": [
+    {
+      "check": "1000: event conservation",
+      "passed": true
+    },
+    {
+      "check": "1000: catalog size",
+      "passed": true
+    },
+    {
+      "check": "1000: interactions conserve weights",
+      "passed": true
+    },
+    {
+      "check": "1000: trace includes all stages",
+      "passed": true
+    },
+    {
+      "check": "1000: trace uses disk index",
+      "passed": true
+    },
+    {
+      "check": "1000: PageRank normalized",
+      "passed": true
+    },
+    {
+      "check": "1000: partitions cover graph",
+      "passed": true
+    },
+    {
+      "check": "1000: 15 methods and repetitions",
+      "passed": true
+    },
+    {
+      "check": "10000: event conservation",
+      "passed": true
+    },
+    {
+      "check": "10000: catalog size",
+      "passed": true
+    },
+    {
+      "check": "10000: interactions conserve weights",
+      "passed": true
+    },
+    {
+      "check": "10000: trace includes all stages",
+      "passed": true
+    },
+    {
+      "check": "10000: trace uses disk index",
+      "passed": true
+    },
+    {
+      "check": "10000: PageRank normalized",
+      "passed": true
+    },
+    {
+      "check": "10000: partitions cover graph",
+      "passed": true
+    },
+    {
+      "check": "10000: 15 methods and repetitions",
+      "passed": true
+    },
+    {
+      "check": "100000: event conservation",
+      "passed": true
+    },
+    {
+      "check": "100000: catalog size",
+      "passed": true
+    },
+    {
+      "check": "100000: interactions conserve weights",
+      "passed": true
+    },
+    {
+      "check": "100000: trace includes all stages",
+      "passed": true
+    },
+    {
+      "check": "100000: trace uses disk index",
+      "passed": true
+    },
+    {
+      "check": "100000: PageRank normalized",
+      "passed": true
+    },
+    {
+      "check": "100000: partitions cover graph",
+      "passed": true
+    },
+    {
+      "check": "100000: 15 methods and repetitions",
+      "passed": true
+    },
+    {
+      "check": "1000000: event conservation",
+      "passed": true
+    },
+    {
+      "check": "1000000: catalog size",
+      "passed": true
+    },
+    {
+      "check": "1000000: interactions conserve weights",
+      "passed": true
+    },
+    {
+      "check": "1000000: trace includes all stages",
+      "passed": true
+    },
+    {
+      "check": "1000000: trace uses disk index",
+      "passed": true
+    },
+    {
+      "check": "1000000: PageRank normalized",
+      "passed": true
+    },
+    {
+      "check": "1000000: partitions cover graph",
+      "passed": true
+    },
+    {
+      "check": "1000000: 15 methods and repetitions",
+      "passed": true
+    },
+    {
+      "check": "10000000: event conservation",
+      "passed": true
+    },
+    {
+      "check": "10000000: catalog size",
+      "passed": true
+    },
+    {
+      "check": "10000000: interactions conserve weights",
+      "passed": true
+    },
+    {
+      "check": "10000000: trace includes all stages",
+      "passed": true
+    },
+    {
+      "check": "10000000: trace uses disk index",
+      "passed": true
+    },
+    {
+      "check": "10000000: PageRank normalized",
+      "passed": true
+    },
+    {
+      "check": "10000000: partitions cover graph",
+      "passed": true
+    },
+    {
+      "check": "10000000: 15 methods and repetitions",
+      "passed": true
+    },
+    {
+      "check": "00_exploracion_rees46.ipynb: no saved errors",
+      "passed": true
+    },
+    {
+      "check": "00_exploracion_rees46.ipynb: executed from code",
+      "passed": true
+    },
+    {
+      "check": "01_kdtree_knn.ipynb: no saved errors",
+      "passed": true
+    },
+    {
+      "check": "01_kdtree_knn.ipynb: executed from code",
+      "passed": true
+    },
+    {
+      "check": "02_benchmark_kdtree.ipynb: no saved errors",
+      "passed": true
+    },
+    {
+      "check": "02_benchmark_kdtree.ipynb: executed from code",
+      "passed": true
+    },
+    {
+      "check": "03_bloom_filter.ipynb: no saved errors",
+      "passed": true
+    },
+    {
+      "check": "03_bloom_filter.ipynb: executed from code",
+      "passed": true
+    },
+    {
+      "check": "04_pipeline_scalability.ipynb: no saved errors",
+      "passed": true
+    },
+    {
+      "check": "04_pipeline_scalability.ipynb: executed from code",
+      "passed": true
+    },
+    {
+      "check": "05_pipeline_completo.ipynb: no saved errors",
+      "passed": true
+    },
+    {
+      "check": "05_pipeline_completo.ipynb: executed from code",
+      "passed": true
+    },
+    {
+      "check": "PPTX has 14 slides",
+      "passed": true
+    },
+    {
+      "check": "PPTX has 3 editable chart workbooks",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "artifacts": {
+    "Proyecto_Final_Grupo_EDA.pdf": {
+      "bytes": 558194,
+      "sha256": "4ccf7d128af4f9f2b7251cfe0dec43161bc0e1cb0e85df8d0ca1d09fb076e8e2"
+    },
+    "Presentacion_Final_Grupo_EDA.pptx": {
+      "bytes": 72987,
+      "sha256": "e88b918c33a68187b2a119e9ff51fdbc11f00a056b14d64d061c035c12a02832"
+    }
+  },
+  "scope": "Saved artifact consistency, not a replacement for pytest, visual QA or oral defense"
+}

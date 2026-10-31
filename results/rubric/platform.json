@@ -1,0 +1,11 @@
+{
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "cpu": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+  "ram_gib": 15.668815612792969,
+  "seed": 42,
+  "native_threads": 1,
+  "protocol": "time includes tracemalloc; RSS sampled at 5 ms; 20 fixed queries; weighted frequency updates",
+  "repetitions_policy": "100 through 100K; 3 for 1M; 1 for 10M due to local resource limits",
+  "scale": "N input events; all derived products/graph entities are measured and reported separately"
+}

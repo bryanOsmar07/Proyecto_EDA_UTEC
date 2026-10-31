@@ -1,0 +1,8 @@
+{
+  "dataset": "REES46 multi-category eCommerce behavior",
+  "file": "2019-Oct.csv",
+  "bytes": 5668612855,
+  "sha256": "fedd938409b5f836ec89b39c861b13dad99fc7cd9beb1fddd97a2d50488b5b80",
+  "source": "https://www.kaggle.com/datasets/mkechinov/ecommerce-behavior-data-from-multi-category-store",
+  "subsets": "first 1000, 10000, 100000, 1000000, 10000000 rows in file order"
+}
