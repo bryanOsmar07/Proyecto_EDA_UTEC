@@ -20,6 +20,7 @@ data/processed/
 *.csv
 # Conservar resultados experimentales del proyecto
 !results/*.csv
+!results/**/*.csv
 *.parquet
 *.zip
 
@@ -30,3 +31,8 @@ benchmarks/tmp/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+
+# Archivos de construcción y revisión visual de entregables
+build/
+.chart-data-*/
+.codex-finalizer/
